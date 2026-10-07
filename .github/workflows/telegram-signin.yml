@@ -37,4 +37,3 @@ jobs:
       - name: Final Summary
         if: always()
         run: echo "运行状态：${{ job.status }}"
-# Re-enabled during Qinglong migration on 2026-09-08

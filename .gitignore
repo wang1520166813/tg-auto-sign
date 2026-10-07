@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# Telegram Session(绝不可提交)
+*.session
+*.session-journal
+
+# 环境变量
+.env
+.env.*

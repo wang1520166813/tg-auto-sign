@@ -23,30 +23,14 @@ from telethon.errors import (
 from telethon.sessions import StringSession
 
 # ================= 配置区域 =================
-# 签到列表 (明文配置 - 您的 Bot/频道)
-SIGN_LIST: List[Tuple[str, str]] = [
-    ("@sgkboxbot", "/qd"),
-    ("@TBSGKBot", "/sign"),
-    ("@xfhzjbot", "/qd"),
-    ("@Kali_SGK_Bot", "/checkin"),
-    ("@xdhz88bot", "/qd"),
-    ("@Carll_Bomb_bot", "/qd"),
-    ("@jdHappybot", "/qd"),
-    ("@nb3344bot", "/qd"),
-    ("@XFchart1", "/sign_in"),
-    ("@xamowbot", "签到"),
-    ("@yuntuvpnbot", "/checkin"),
-    ("@lightningxvpngroup", "抽奖"),  # lightningxvpngroup 抽奖
-    ("@lightningxvpn_bot", "领奖"),  # 新增：lightningxvpn_bot 领奖
-    ("@aisgk1", "/sign"),  # aisgk1 签到
-    ("@ZSNHJLQ", "签到"),  # ZSNHJLQ 签到
-    # 新增签到项目
-    ("@xhssgkBOT", "/ck"),
-    ("@xhgsgk_treebot", "/qd"),
-    ("@haowangshegongkubot", "/sign"),
-    ("@AEONSGKBot", "/qd"),
-    ("@Lewa_movie", "签到"),
-]
+# 签到列表：从环境变量读取（JSON 数组，每项 ["@bot", "命令"]）,可留空
+#   示例：SIGN_LIST_JSON='[["@ExampleBot","/sign"],["@DemoBot","/qd"]]'
+import json as _json
+_raw_sign = os.environ.get("SIGN_LIST_JSON", "[]").strip()
+try:
+    SIGN_LIST = [tuple(x) for x in _json.loads(_raw_sign) if isinstance(x, list) and len(x) == 2]
+except Exception:
+    SIGN_LIST = []
 
 # 重试与超时配置
 MAX_RETRIES = 3
@@ -159,7 +143,7 @@ async def connect_with_timeout(client, timeout):
 
 async def main():
     print("=" * 60, flush=True)
-    print(f"🚀 Telegram 自动签到 (完美版 v7 - 精简失效任务)", flush=True)
+    print("🚀 Telegram Auto Sign-in", flush=True)
     start_time = get_beijing_time()
     print(f"📅 启动时间：{start_time}", flush=True)
     print("=" * 60, flush=True)
@@ -234,10 +218,6 @@ async def main():
         print(f"[{get_beijing_time()}] 🔑 正在验证会话...", flush=True)
         await asyncio.wait_for(client.start(), timeout=CONNECT_TIMEOUT)
         print(f"[{get_beijing_time()}] ✅ 会话验证成功", flush=True)
-        
-        me = await client.get_me()
-        display_name = me.first_name + (f" (@{me.username})" if me.username else "")
-        print(f"[{get_beijing_time()}] 👤 当前账号：{display_name}", flush=True)
         
         print(f"\n[{get_beijing_time()}] 📋 开始执行签到任务...\n", flush=True)
         
