@@ -12,7 +12,7 @@ concurrency:
 jobs:
   sign-in:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,6 +33,7 @@ jobs:
           API_ID: ${{ secrets.API_ID }}
           API_HASH: ${{ secrets.API_HASH }}
           SESSION: ${{ secrets.SESSION }}
+          SIGN_LIST_JSON: ${{ secrets.SIGN_LIST_JSON }}
         run: python main.py
       - name: Final Summary
         if: always()

@@ -30,12 +30,13 @@ _raw_sign = os.environ.get("SIGN_LIST_JSON", "[]").strip()
 try:
     SIGN_LIST = [tuple(x) for x in _json.loads(_raw_sign) if isinstance(x, list) and len(x) == 2]
 except Exception:
+    print("⚠️ [警告] SIGN_LIST_JSON 解析失败，已按空列表处理。请检查 JSON 格式（一行、半角引号）。", flush=True)
     SIGN_LIST = []
 
 # 重试与超时配置
 MAX_RETRIES = 3
 DEFAULT_DELAY = 3  # 任务间隔
-GLOBAL_TIMEOUT = 600  # 全局超时：10 分钟
+GLOBAL_TIMEOUT = 1500  # 全局超时：25 分钟，兼容更长签到列表
 CONNECT_TIMEOUT = 20  # 连接超时
 # ===========================================
 
@@ -107,9 +108,14 @@ async def sign_bot(client, bot_username, command, retry_count=0):
         return False  # 这类错误不重试
         
     except FloodWaitError as e:
-        wait_time = e.seconds
-        print(f"[{get_beijing_time()}] ⚠️ [Flood 限制] {clean_user} 触发限流，等待 {wait_time} 秒...", flush=True)
-        await asyncio.sleep(wait_time + 5)
+        wait_seconds = int(getattr(e, "seconds", 0) or 0)
+        wait_time = min(wait_seconds, 120)  # 最多等待 120 秒，避免长阻塞
+        if wait_seconds > 120:
+            print(f"[{get_beijing_time()}] ⚠️ [Flood 限制] {clean_user} 需等待 {wait_seconds} 秒超过上限 120s，本次跳过等待...", flush=True)
+        else:
+            print(f"[{get_beijing_time()}] ⚠️ [Flood 限制] {clean_user} 触发限流，等待 {wait_time} 秒...", flush=True)
+        if wait_time > 0:
+            await asyncio.sleep(wait_time)
         if retry_count < MAX_RETRIES:
             return await sign_bot(client, clean_user, clean_cmd, retry_count + 1)
         return False
@@ -151,6 +157,7 @@ async def main():
     # 0. 空列表保护
     if not SIGN_LIST:
         print("❌ [严重错误] 签到列表为空！", flush=True)
+        print("💡 请检查仓库 Secrets/Variables 中的 SIGN_LIST_JSON 是否已填写且格式正确。", flush=True)
         sys.exit(1)
     
     # 1. 环境变量预检

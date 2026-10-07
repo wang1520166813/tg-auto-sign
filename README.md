@@ -85,8 +85,15 @@ with TelegramClient(StringSession(), API_ID, API_HASH) as client:
 | `SESSION` | ✅ | 步骤 2 生成的 Session 字符串 |
 | `SIGN_LIST_JSON` | ✅ | 签到列表 JSON，如 `[["@ExampleBot","/sign"]]` |
 
-> ⚠️ `SIGN_LIST_JSON` 也可以放在 **Variables** 标签页（它不是敏感信息），
-> 但 `API_ID` / `API_HASH` / `SESSION` **必须**放在 **Secrets**。
+> ⚠️ **这四个变量请统一放在 Secrets 标签页。**
+> 特别注意：`SIGN_LIST_JSON` **也要放 Secrets**——工作流是从 `secrets.SIGN_LIST_JSON` 读取的，
+> 如果误放到 Variables，脚本读不到签到列表，任务会直接失败。
+>
+> 填写 `SIGN_LIST_JSON` 时请保持**一行、半角引号**，例如：
+> ```
+> [["@ExampleBot","/sign"],["@DemoBot","/qd"]]
+> ```
+> 不要换行，不要用中文引号 “ ” ，多个频道之间用英文逗号分隔。
 
 ### 步骤 5 · 调整运行时间（可选）
 
@@ -142,7 +149,7 @@ cron 表达式使用 **UTC 时间**，北京时间 = UTC + 8：
 
 ## 🛡️ 安全说明
 
-- 所有凭证（`API_ID` / `API_HASH` / `SESSION`）通过 **GitHub Secrets** 管理，不写入代码
+- 所有配置（`API_ID` / `API_HASH` / `SESSION` / `SIGN_LIST_JSON`）均通过 **GitHub Secrets** 管理，不写入代码
 - 代码中**不硬编码**任何密钥
 - 日志输出自动**脱敏**：超过 40 字符的长串与 IP 地址会被替换为 `[REDACTED]` / `[IP]`
 - 建议每 **3–6 个月**轮换一次 Session
